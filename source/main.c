@@ -10,7 +10,10 @@
 int main(){
 
     Order testOrder = {0, 0};
-    printf("orderType=%d\n", testOrder.orderType);
+    Order orderList[] = {};
+    addOrder(testOrder, orderList);
+
+
 
     elevio_init();
     
