@@ -1,18 +1,14 @@
 #include "orders.h"
 
-typedef struct OrderScheduler{
-    Order orderList[3];
-}OrderHandler;
 
+void sortOrders(enum direction dir, int floor, Order orderList[]);
 
-void sortOrders(enum direction dir, int floor);
+void addOrder(Order order, Order orderList[]);
 
-void addOrder(Order order);
+void deleteOrder(Order orderList);
 
-void deleteOrder();
+void emptyList(Order orderList);
 
-void emptyList();
+void getOrder(Order orderList);
 
-void getOrder();
-
-void updateOrderLigths();
+void updateOrderLigths(Order orderList);
