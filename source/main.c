@@ -3,10 +3,15 @@
 #include <signal.h>
 #include <time.h>
 #include "driver/elevio.h"
+#include "elevator.h"
 
 
 
 int main(){
+
+    Order testOrder = {0, 0};
+    printf("orderType=%d\n", testOrder.orderType);
+
     elevio_init();
     
     printf("=== Example Program ===\n");
