@@ -7,11 +7,21 @@
 
 
 
+/// @brief 
+/// @return 
 int main(){
 
-    Order testOrder = {0, 0};
-    Order orderList[] = {};
-    addOrder(testOrder, orderList);
+    // Initiate elevator struct
+    Elevator *elevator = malloc(sizeof(*elevator));
+    *elevator = (Elevator) {
+        .floor = 0,
+        .currentTarget = -1,
+        .elevatorDirection = NONE,
+        .doorOpen = false,
+        .stopped = false,
+        .obstructed = false
+    };
+    
 
 
 
@@ -20,27 +30,52 @@ int main(){
     printf("=== Example Program ===\n");
     printf("Press the stop button on the elevator panel to exit\n");
 
-    elevio_motorDirection(DIRN_UP);
+    elevio_motorDirection(DIRN_STOP);
+
 
     while(1){
         int floor = elevio_floorSensor();
-        printf("floor: %d \n",floor);
-
-        if(floor == 0){
-            elevio_motorDirection(DIRN_UP);
+        if (floor != -1){
+            elevator->floor = floor;
+            if (elevator->currentTarget == elevator->floor) {
+                    elevio_motorDirection(DIRN_STOP);
+            } 
         }
+        printf("floor: %d, target: %d\n",floor, elevator->currentTarget);
 
-        if(floor == N_FLOORS-1){
-            elevio_motorDirection(DIRN_DOWN);
-        }
+
 
 
         for(int f = 0; f < N_FLOORS; f++){
             for(int b = 0; b < N_BUTTONS; b++){
                 int btnPressed = elevio_callButton(f, b);
+                
+                if (btnPressed) {
+                    Order currentOrder = getOrder(f, b);
+                    elevatorMove(elevator, currentOrder);
+                }
+                
+                if (elevator->currentTarget == -1 | elevator->currentTarget == elevator->floor) {
+                    elevator->elevatorDirection = NONE;
+                } else if (elevator->currentTarget < elevator->floor) {
+                    elevator->elevatorDirection = DOWN;
+                } else if (elevator->currentTarget > elevator->floor) {
+                    elevator->elevatorDirection = UP;
+                }
+
+
                 elevio_buttonLamp(f, b, btnPressed);
             }
         }
+
+        if (elevator->elevatorDirection == UP) {
+            elevio_motorDirection(DIRN_UP);
+        } else if (elevator->elevatorDirection == DOWN) {
+            elevio_motorDirection(DIRN_DOWN);
+        } else if (elevator->elevatorDirection == NONE) {
+            elevio_motorDirection(DIRN_STOP);
+        }
+        
 
         if(elevio_obstruction()){
             elevio_stopLamp(1);

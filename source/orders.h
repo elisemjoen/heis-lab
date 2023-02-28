@@ -1,5 +1,5 @@
 
-enum direction {UP, DOWN};
+enum direction {UP, DOWN, NONE};
 
 
 typedef struct Order{
