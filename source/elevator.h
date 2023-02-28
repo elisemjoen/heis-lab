@@ -2,6 +2,7 @@
 #include <stdbool.h>
 typedef struct Elevator {
     int floor;
+    int currentTarget;
     enum direction elevatorDirection;
     bool doorOpen;
     bool stopped;
@@ -9,7 +10,7 @@ typedef struct Elevator {
 }Elevator;
 
 
-void elevatorMove(Order order);
+void elevatorMove(Elevator *elevator, Order order);
 
 void updateFloor();
 

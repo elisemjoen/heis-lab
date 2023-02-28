@@ -9,6 +9,6 @@ void deleteOrder(Order orderList);
 
 void emptyList(Order orderList);
 
-void getOrder(Order orderList);
+Order getOrder(int floor, int button);
 
 void updateOrderLigths(Order orderList);
