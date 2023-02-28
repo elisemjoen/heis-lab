@@ -2,36 +2,44 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
-#include "driver/elevio.h"
 #include "elevator.h"
-
+#include "stateMachine.h"
 
 
 /// @brief 
 /// @return 
 int main(){
 
+    elevio_init();
+    
+    printf("=== Example Program ===\n");
+    printf("Press the stop button on the elevator panel to exit\n");
+    
+    // Startup
+
+    // Initialize State Machine
+    enum states StateMachine = Initialize;
+
     // Initiate elevator struct
     Elevator *elevator = malloc(sizeof(*elevator));
     *elevator = (Elevator) {
-        .floor = 0,
+        .floor = -1,
         .currentTarget = -1,
         .elevatorDirection = NONE,
         .doorOpen = false,
         .stopped = false,
         .obstructed = false
     };
+
+    int floor = elevio_floorSensor();
+    if(floor == -1){
+        elevio_motorDirection(DIRN_DOWN);
+        if(floor != -1){
+            elevio_motorDirection(DIRN_STOP);
+        }
+    }
+
     
-
-
-
-    elevio_init();
-    
-    printf("=== Example Program ===\n");
-    printf("Press the stop button on the elevator panel to exit\n");
-
-    elevio_motorDirection(DIRN_STOP);
-
 
     while(1){
         int floor = elevio_floorSensor();
