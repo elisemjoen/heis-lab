@@ -55,9 +55,6 @@ int main(){
     
     // Startup
 
-    // Initialize State Machine
-    enum states stateMachine = Initialize;
-    enum states newState = Initialize;
     // Initiate elevator struct
     Elevator *elevator = malloc(sizeof(*elevator));
     *elevator = (Elevator) {
@@ -69,15 +66,12 @@ int main(){
         .obstructed = false
     };
 
-    elevio_motorDirection(DIRN_DOWN);
+    // Initialize State Machine
+    enum states stateMachine = Initialize;
+    enum states newState = Initialize;
 
-    /*
-    int floor = printf("unrecognized state change %d to %d \n", currentState, newState); != -1){
-            elevio_motorDirection(DIRN_STOP);
-        }
-    }
-    */
-    
+    // Start initialization
+    elevio_motorDirection(DIRN_DOWN);
 
     
 
@@ -89,9 +83,9 @@ int main(){
         if (floor != -1){
             elevator->floor = floor;
         }
-        printf("current floor: %d\n", floor);
+        // printf("current floor: %d\n", floor);
         //printf("floor: %d, target: %d\n",floor, elevator->currentTarget);
-
+        
         // Stops and obstructs
         if(elevio_obstruction()){
             // Maybe add as its own state
@@ -101,90 +95,40 @@ int main(){
         }
 
         //---------------- Set new state ---------------------------------
-        if (stateMachine == Initialize && floor == -1);
-        else if (elevio_stopButton()) newState = Stop;
-        else if (elevator->currentTarget == elevator->floor) {
-            elevio_motorDirection(DIRN_STOP);
-            newState = OpenDoor;
-        } else newState = Moving;
+
 
         //---------------- Execute state change --------------------------
-        enum stateChanges stateC = changeState(stateMachine, newState);
         printf("current state: %d, new state: %d\n", stateMachine, newState);
-        switch(stateC){
-            case(Init_OpenDoor):
-                stateMachine = OpenDoor;
-                elevio_motorDirection(DIRN_STOP);
+        switch(stateMachine){
+            case(Initialize):
+                if (floor != -1) {
+                    // Initialize to AtFloor
+                    elevio_motorDirection(DIRN_STOP);
+                    stateMachine = AtFloor;
+                }
                 break;
 
 
-
-
-            case(AtFloor_Moving):
-                stateMachine = Moving;
+            case(AtFloor):
+                elevator_movement(elevator);
+                if ( elevator->elevatorDirection != NONE) stateMachine = Moving;
                 break;
 
-            case(AtFloor_OpenDoor):
+            case(Moving):
                 stateMachine = OpenDoor;
                 elevio_motorDirection(DIRN_STOP);
                 break;
             
-            case(AtFloor_Stop):
+            case(OpenDoor):
                 stateMachine = Stop;
                 elevio_motorDirection(DIRN_STOP);
                 break;
 
 
-            case(AtFloor_AtFloor):
+            case(Stop):
                 elevator_movement(elevator);
                 break;
             
-            case(Moving_AtFloor):
-                stateMachine = AtFloor;
-                break;
-            
-            case(Moving_OpenDoor):
-                stateMachine = OpenDoor;
-                elevio_motorDirection(DIRN_STOP);
-                break;
-
-            case(Moving_Stop):
-                stateMachine = Stop;
-                elevio_motorDirection(DIRN_STOP);
-                break;
-
-
-
-
-            case(OpenDoor_AtFloor):
-                stateMachine = AtFloor;
-                elevator_movement(elevator);
-                break;
-
-            case(OpenDoor_Stop):
-                stateMachine = Stop;
-                elevio_motorDirection(DIRN_STOP);
-                break;
-
-
-
-            
-            case(Stop_AtFloor):
-                stateMachine = AtFloor;
-                break;
-            
-            case(Stop_Moving):
-                stateMachine = Moving;
-                break;
-
-            case(Stop_OpenDoor):
-                stateMachine = OpenDoor;
-                elevio_motorDirection(DIRN_STOP);
-                break;
-
-
-
-
             default:
 
                 break;
@@ -195,7 +139,10 @@ int main(){
 
 
         //---------------- Order planning --------------------------------
+        time_t before = clock();
         button_check(elevator);
+        double interval = (clock()- before)/CLOCKS_PER_SEC;
+        printf("function takes %f\n", interval);
         
         
     
