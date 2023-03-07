@@ -1,24 +1,36 @@
 #include "stateMachine.h"
 #include "orderHandler.h"
 
-void changeState(enum states currentState, enum states newState) {
+
+
+enum stateChanges changeState(enum states currentState, enum states newState) {
     switch(currentState) {
         case Initialize:
-            if (newState == AtFloor) initialize_atFloor();
+            if (newState == AtFloor) return Init_AtFloor;
             break;
         case AtFloor:
-            if (newState == Moving) atFloor_moving();
-            if (newState == Stop) atFloor_stop();
+            if (newState == Moving) return AtFloor_Moving;
+            if (newState == OpenDoor) return AtFloor_OpenDoor;
+            if (newState == Stop) return AtFloor_Stop;
             break;
         case Moving:
-            if (newState == AtFloor) moving_atFloor();
-            if (newState == Stop) moving_stop();
+            if (newState == AtFloor) return Moving_AtFloor;
+            if (newState == OpenDoor) return Error;
+            if (newState == Stop) return Moving_Stop;
+            break;
+        case OpenDoor:
+            if (newState == AtFloor) return OpenDoor_AtFloor;
+            if (newState == Moving) return Error;
+            if (newState == Stop) return OpenDoor_Stop;
             break;
         case Stop:
-            if (newState == AtFloor) stop_atFloor();
-            if (newState == Moving) stop_moving();
+            if (newState == AtFloor) return Stop_AtFloor;
+            if (newState == Moving) return Stop_Moving;
+            if (newState == OpenDoor) return Stop_OpenDoor;
             break;
     }
+    printf("unrecognized state change %d to %d \n", currentState, newState);
+    return NoChange;
 }
 
 void initialize_atFloor() {

@@ -18,8 +18,8 @@ int main(){
     // Startup
 
     // Initialize State Machine
-    enum states StateMachine = Initialize;
-
+    enum states stateMachine = Initialize;
+    enum states newState;
     // Initiate elevator struct
     Elevator *elevator = malloc(sizeof(*elevator));
     *elevator = (Elevator) {
@@ -42,6 +42,82 @@ int main(){
     
 
     while(1){
+        // Set new state
+        if (stateMachine == Initialize && elevio_floorSensor() == -1) Initialize;
+        else if (elevio_stopButton()) newState = Stop;
+        else if (false) newState = OpenDoor;
+        else if (elevio_floorSensor() != -1) newState = AtFloor;
+        else newState = Moving;
+
+        // State machine
+        switch(changeState(stateMachine, newState)){
+            case(Init_AtFloor):
+                stateMachine = AtFloor;
+                break;
+
+
+
+
+            case(AtFloor_Moving):
+                stateMachine = Moving;
+                break;
+
+            case(AtFloor_OpenDoor):
+                stateMachine = OpenDoor;
+                break;
+            
+            case(AtFloor_Stop):
+                stateMachine = Stop;
+                break;
+
+
+
+            
+            case(Moving_AtFloor):
+                stateMachine = AtFloor;
+                break;
+            
+            case(Moving_Stop):
+                stateMachine = Stop;
+                break;
+
+
+
+
+            case(OpenDoor_AtFloor):
+                stateMachine = AtFloor;
+                break;
+
+            case(OpenDoor_Stop):
+                stateMachine = Stop;
+                break;
+
+
+
+            
+            case(Stop_AtFloor):
+                stateMachine = AtFloor;
+                break;
+            
+            case(Stop_Moving):
+                stateMachine = Moving;
+                break;
+
+            case(Stop_OpenDoor):
+                stateMachine = OpenDoor;
+                break;
+
+
+
+
+            default:
+
+                break;
+
+        }
+        printf("Current state %d\n", stateMachine);
+
+        
         int floor = elevio_floorSensor();
         if (floor != -1){
             elevator->floor = floor;
@@ -49,7 +125,7 @@ int main(){
                     elevio_motorDirection(DIRN_STOP);
             } 
         }
-        printf("floor: %d, target: %d\n",floor, elevator->currentTarget);
+        //printf("floor: %d, target: %d\n",floor, elevator->currentTarget);
 
 
 
@@ -86,7 +162,9 @@ int main(){
         
 
         if(elevio_obstruction()){
-            elevio_stopLamp(1);
+
+
+
         } else {
             elevio_stopLamp(0);
         }
