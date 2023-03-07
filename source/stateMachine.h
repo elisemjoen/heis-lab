@@ -9,13 +9,15 @@ enum states {
 };
 
 enum stateChanges {
-    Init_AtFloor,
+    Init_OpenDoor,
 
+    AtFloor_AtFloor,
     AtFloor_Moving,
     AtFloor_OpenDoor,
     AtFloor_Stop,
 
     Moving_AtFloor,
+    Moving_OpenDoor,
     Moving_Stop,
 
     OpenDoor_AtFloor,
@@ -25,8 +27,11 @@ enum stateChanges {
     Stop_Moving,
     Stop_OpenDoor,
 
-    Error,
-    NoChange
+    NoChange,
+
+    StateError,
+    UnknownState
+    
 };
 
 

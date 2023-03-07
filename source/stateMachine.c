@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "stateMachine.h"
 #include "orderHandler.h"
 
@@ -6,21 +7,22 @@
 enum stateChanges changeState(enum states currentState, enum states newState) {
     switch(currentState) {
         case Initialize:
-            if (newState == AtFloor) return Init_AtFloor;
+            if (newState == OpenDoor) return Init_OpenDoor;
             break;
         case AtFloor:
+            if (newState == AtFloor) return AtFloor_AtFloor;
             if (newState == Moving) return AtFloor_Moving;
             if (newState == OpenDoor) return AtFloor_OpenDoor;
             if (newState == Stop) return AtFloor_Stop;
             break;
         case Moving:
             if (newState == AtFloor) return Moving_AtFloor;
-            if (newState == OpenDoor) return Error;
+            if (newState == OpenDoor) return Moving_OpenDoor;
             if (newState == Stop) return Moving_Stop;
             break;
         case OpenDoor:
             if (newState == AtFloor) return OpenDoor_AtFloor;
-            if (newState == Moving) return Error;
+            if (newState == Moving) return StateError;
             if (newState == Stop) return OpenDoor_Stop;
             break;
         case Stop:
@@ -29,7 +31,11 @@ enum stateChanges changeState(enum states currentState, enum states newState) {
             if (newState == OpenDoor) return Stop_OpenDoor;
             break;
     }
-    printf("unrecognized state change %d to %d \n", currentState, newState);
+    if (currentState != newState) {
+        printf("unrecognized state change from %d to %d \n", currentState, newState);
+        return UnknownState;
+    }
+    
     return NoChange;
 }
 
