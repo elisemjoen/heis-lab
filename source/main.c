@@ -6,15 +6,40 @@
 #include "stateMachine.h"
 
 
-
-void elevator_movement(Elevator* elev) {
-    if (elev->elevatorDirection == UP) {
-        elevio_motorDirection(DIRN_UP);
-    } else if (elev->elevatorDirection == DOWN) {
-        elevio_motorDirection(DIRN_DOWN);
-    } else if (elev->elevatorDirection == NONE) {
-        elevio_motorDirection(DIRN_STOP);
+// For debugging:
+char* to_state(enum states state) {
+    switch(state) {
+        case(0):
+            return "Initialize";
+            break;
+        case(1):
+            return "AtFloor";
+            break;
+        case(2):
+            return "Moving";
+            break;
+        case(3):
+            return "OpenDoor";
+            break;
+        case(4):
+            return "Stop";
+            break;
     }
+}
+
+
+void elevator_movement(Elevator* elevator) {
+    if (elevator->currentTarget == -1 | elevator->currentTarget == elevator->floor) {
+        elevio_motorDirection(DIRN_STOP);
+        elevator->elevatorDirection = NONE;
+    } else if (elevator->currentTarget < elevator->floor) {
+        elevio_motorDirection(DIRN_DOWN);
+        elevator->elevatorDirection = DOWN;
+    } else if (elevator->currentTarget > elevator->floor) {
+        elevio_motorDirection(DIRN_UP);
+        elevator->elevatorDirection = UP;
+    }
+
 }
 
 
@@ -25,18 +50,14 @@ void button_check(Elevator* elevator){
                 
                 if (btnPressed) {
                     Order currentOrder = getOrder(f, b);
+                    // Add order
                     elevatorMove(elevator, currentOrder);
+                    
+                    // Remember to turn of the light
+                    elevio_buttonLamp(f, b, btnPressed);    
                 }
                 
-                if (elevator->currentTarget == -1 | elevator->currentTarget == elevator->floor) {
-                    elevator->elevatorDirection = NONE;
-                } else if (elevator->currentTarget < elevator->floor) {
-                    elevator->elevatorDirection = DOWN;
-                } else if (elevator->currentTarget > elevator->floor) {
-                    elevator->elevatorDirection = UP;
-                }
-
-                elevio_buttonLamp(f, b, btnPressed);
+                            
             }
         }
 }
@@ -73,16 +94,17 @@ int main(){
     // Start initialization
     elevio_motorDirection(DIRN_DOWN);
 
+
+    // Count down variable
+    time_t countDown = clock();
     
 
     while(1){
+        
 
         //---------------- Basic elevator functionality ------------------
         // Set floor counter
         int floor = elevio_floorSensor();
-        if (floor != -1){
-            elevator->floor = floor;
-        }
         // printf("current floor: %d\n", floor);
         //printf("floor: %d, target: %d\n",floor, elevator->currentTarget);
         
@@ -98,51 +120,107 @@ int main(){
 
 
         //---------------- Execute state change --------------------------
-        printf("current state: %d, new state: %d\n", stateMachine, newState);
+        //printf("current state: %d, new state: %d\n", stateMachine, newState);
         switch(stateMachine){
             case(Initialize):
                 if (floor != -1) {
                     // Initialize to AtFloor
-                    elevio_motorDirection(DIRN_STOP);
+                    elevator->elevatorDirection = NONE;
+                    elevator_movement(elevator);
                     stateMachine = AtFloor;
                 }
                 break;
 
 
             case(AtFloor):
-                elevator_movement(elevator);
-                if ( elevator->elevatorDirection != NONE) stateMachine = Moving;
+                if(elevio_stopButton()) {
+                    stateMachine = Stop;
+                    elevio_stopLamp(1);
+                    // Delete all orders
+
+                    break;
+                }
+
+                // order at floor
+                if (elevator->currentTarget != -1 && elevator->floor == elevator->currentTarget) {
+                    countDown = clock();
+                    // Delete order
+                    // Turn on lights
+                    elevio_doorOpenLamp(1);
+                    stateMachine = OpenDoor;
+                }
+                
+                if(elevator->currentTarget != -1) {
+                    stateMachine = Moving;
+                    elevator_movement(elevator);
+                }
+
                 break;
 
             case(Moving):
-                stateMachine = OpenDoor;
-                elevio_motorDirection(DIRN_STOP);
+                if (elevio_stopButton()) {
+                    elevator->elevatorDirection = NONE;
+                    elevator->currentTarget = -1;
+                    elevator_movement(elevator);
+                    stateMachine = Stop;
+                    elevio_stopLamp(1);
+
+                    // Delete all orders
+                    elevator->currentTarget = -1;
+
+                    break;
+                }
+
+                if (floor != -1) {
+                    elevator->floor = floor;
+                    if (elevator->currentTarget == floor) {
+                        stateMachine = AtFloor;
+                        elevator->currentTarget = -1;
+                        elevator_movement(elevator);
+                    }
+                }
+                
                 break;
             
             case(OpenDoor):
-                stateMachine = Stop;
-                elevio_motorDirection(DIRN_STOP);
+                {
+                    double tick = (double)(clock() - countDown) / CLOCKS_PER_SEC;
+                    // printf("tick: %f\n", tick);
+                    if (tick > 0.02) {
+                        stateMachine = AtFloor;
+                        // remove target
+                        elevator->currentTarget = -1;
+                        elevator_movement(elevator);
+                    }
+                }
+                
                 break;
 
 
             case(Stop):
-                elevator_movement(elevator);
-                break;
-            
-            default:
-
-                break;
+                {
+                    if (elevio_stopButton()) countDown = clock();
+                    double tick = (double)(clock() - countDown) / CLOCKS_PER_SEC;
+                    // printf("tick: %f\n", tick);
+                    if (tick > 0.02) {
+                        stateMachine = AtFloor;
+                        elevio_stopLamp(0);
+                    }
+                    break;
+                }
 
         }
-        //printf("Current state: %d, new state: %d\n", stateMachine, newState);
+        printf("Current state: %s \n", to_state(stateMachine));
 
 
 
         //---------------- Order planning --------------------------------
-        time_t before = clock();
+        
+        // time_t before = clock();
         button_check(elevator);
-        double interval = (clock()- before)/CLOCKS_PER_SEC;
-        printf("function takes %f\n", interval);
+        // double interval = (clock()- before)/((double) CLOCKS_PER_SEC);
+        // double total = (double) before / CLOCKS_PER_SEC;
+        // printf("function takes %f and %f\n", total, interval);
         
         
     
