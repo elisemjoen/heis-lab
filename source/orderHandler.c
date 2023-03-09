@@ -1,6 +1,8 @@
 #include<stdbool.h>
 #include "orderHandler.h"
 
+// temporary variable
+int floor = 0;
 
 void addOrder(Order order, Order orderList[]) {
 }
@@ -19,9 +21,9 @@ Order getOrder(int floor, int button) {
 }
 
 
-bool elevator_up[] = {false, false, false};
+bool elevator_up[] = {false, false, false, false};
 
-bool elevator_down[] = {false, false, false};
+bool elevator_down[] = {false, false, false, false};
 
 bool elevator_inside[] = {false, false, false, false};
 
@@ -38,19 +40,20 @@ void take_order(Order order) {
         }
     }
 }
-
+int max_floor = 3;
+int min_floor = 0;
 //Gives the next stop that the elevator travels to
 int next_stop(enum direction dir) {
     if (dir == UP){
-        for(int i; i < 4; i++){
-            if(elevator_up[i] == true || elevator_inside[i] == true || elevator_down[i] == true){
+        for(int i = floor + 1; i <= max_floor; i++){
+            if(elevator_up[i] == true || elevator_inside[i] == true){
                 if(i > floor){
                     return i;
                 }
             }
         }
     }else if(dir == DOWN){
-        for(int j; j < 4; j++){
+        for(int j = floor - 1; j >= min_floor; j--){
             if(elevator_down[j] == true || elevator_inside[j] == true){
                 if(j < floor){
                     return j;
