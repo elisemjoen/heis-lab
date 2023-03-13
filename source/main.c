@@ -89,7 +89,6 @@ int main(){
 
     // Initialize State Machine
     enum states stateMachine = Initialize;
-    enum states newState = Initialize;
 
     // Start initialization
     elevio_motorDirection(DIRN_DOWN);
@@ -127,6 +126,7 @@ int main(){
                     // Initialize to AtFloor
                     elevator->elevatorDirection = NONE;
                     elevator_movement(elevator);
+                    elevator->floor = floor;
                     stateMachine = AtFloor;
                 }
                 break;
@@ -174,7 +174,8 @@ int main(){
                 if (floor != -1) {
                     elevator->floor = floor;
                     if (elevator->currentTarget == floor) {
-                        stateMachine = AtFloor;
+                        countDown = clock();
+                        stateMachine = OpenDoor;
                         elevator->currentTarget = -1;
                         elevator_movement(elevator);
                     }
@@ -183,13 +184,18 @@ int main(){
                 break;
             
             case(OpenDoor):
+
                 {
+                    elevio_doorOpenLamp(1);
+                    if(elevio_obstruction()) {
+                        countDown = clock();
+                    }
                     double tick = (double)(clock() - countDown) / CLOCKS_PER_SEC;
-                    // printf("tick: %f\n", tick);
+                    // Få dette til å stemme med 3 sekunder
                     if (tick > 0.02) {
+                        elevio_doorOpenLamp(0);
                         stateMachine = AtFloor;
                         // remove target
-                        elevator->currentTarget = -1;
                         elevator_movement(elevator);
                     }
                 }
@@ -199,10 +205,8 @@ int main(){
 
             case(Stop):
                 {
-                    if (elevio_stopButton()) countDown = clock();
-                    double tick = (double)(clock() - countDown) / CLOCKS_PER_SEC;
-                    // printf("tick: %f\n", tick);
-                    if (tick > 0.02) {
+                    // Finn en måte å holde døra åpen på
+                    if (!elevio_stopButton()) {
                         stateMachine = AtFloor;
                         elevio_stopLamp(0);
                     }
@@ -211,6 +215,7 @@ int main(){
 
         }
         printf("Current state: %s \n", to_state(stateMachine));
+        // printf("current floor: %d, target floor: %d\n", elevator->floor, elevator->currentTarget);
 
 
 
