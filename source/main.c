@@ -4,6 +4,7 @@
 #include <time.h>
 #include "elevator.h"
 #include "stateMachine.h"
+#include "orderHandler.h"
 
 
 // For debugging:
@@ -27,7 +28,7 @@ char* to_state(enum states state) {
     }
 }
 
-
+//Checks if the current target is above or below floor. Changes direction accordingly
 void elevator_movement(Elevator* elevator) {
     if (elevator->currentTarget == -1 | elevator->currentTarget == elevator->floor) {
         elevio_motorDirection(DIRN_STOP);
@@ -42,18 +43,22 @@ void elevator_movement(Elevator* elevator) {
 
 }
 
-
+//Checks if a button i pressed and makes order
 void button_check(Elevator* elevator){
     for(int f = 0; f < N_FLOORS; f++){
             for(int b = 0; b < N_BUTTONS; b++){
                 int btnPressed = elevio_callButton(f, b);
                 
                 if (btnPressed) {
+                    //Makes order, returns the new order
                     Order currentOrder = getOrder(f, b);
+
+                    //Send order to orderHandler, changes the floor bools
+                    take_order(currentOrder);
                     // Add order
-                    elevatorMove(elevator, currentOrder);
+                    //elevatorMove(elevator, currentOrder);
                     
-                    // Remember to turn of the light
+                    // Remember to turn off the light
                     elevio_buttonLamp(f, b, btnPressed);    
                 }
                 
@@ -134,9 +139,10 @@ int main(){
 
             case(AtFloor):
                 if(elevio_stopButton()) {
+                    //Sends to Stop state and deletes all
                     stateMachine = Stop;
                     elevio_stopLamp(1);
-                    // Delete all orders
+                    delete_all_orders;
 
                     break;
                 }
@@ -144,8 +150,10 @@ int main(){
                 // order at floor
                 if (elevator->currentTarget != -1 && elevator->floor == elevator->currentTarget) {
                     countDown = clock();
-                    // Delete order
-                    // Turn on lights
+                    // Deletes order
+                    elevatorfloor_tofalse(floor);
+
+                    // Turns on lights
                     elevio_doorOpenLamp(1);
                     stateMachine = OpenDoor;
                 }
@@ -165,8 +173,8 @@ int main(){
                     stateMachine = Stop;
                     elevio_stopLamp(1);
 
-                    // Delete all orders
-                    elevator->currentTarget = -1;
+                    delete_all_orders;
+                    //elevator->currentTarget = -1;
 
                     break;
                 }
@@ -184,9 +192,13 @@ int main(){
                 break;
             
             case(OpenDoor):
-
                 {
                     elevio_doorOpenLamp(1);
+
+                    //Changes the current target to the next order
+                    int nextOrder = next_stop(elevator);
+                    elevator->currentTarget = nextOrder;
+
                     if(elevio_obstruction()) {
                         countDown = clock();
                     }
