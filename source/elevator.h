@@ -1,4 +1,6 @@
 #include <stdbool.h>
+#include "orders.h"
+
 typedef struct Elevator {
     int floor;
     int currentTarget;
