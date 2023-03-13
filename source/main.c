@@ -74,6 +74,12 @@ void clear_button_lights(int floor) {
     elevio_buttonLamp(floor, 2, 0);
 }
 
+void clear_all_button_lights() {
+    for (int i = 0; i < 4; i++) {
+        clear_button_lights(i);
+    }
+}
+
 
 /// @brief 
 /// @return 
@@ -106,26 +112,12 @@ int main(){
 
     // Count down variable
     time_t countDown = clock();
+    float delayTime = 0.02;
     
 
     while(1){
-        
 
-        //---------------- Basic elevator functionality ------------------
-        // Set floor counter
         int floor = elevio_floorSensor();
-        // printf("current floor: %d\n", floor);
-        //printf("floor: %d, target: %d\n",floor, elevator->currentTarget);
-        
-        // Stops and obstructs
-        if(elevio_obstruction()){
-            // Maybe add as its own state
-
-        } else {
-            elevio_stopLamp(0);
-        }
-
-        //---------------- Set new state ---------------------------------
 
 
         //---------------- Execute state change --------------------------
@@ -147,27 +139,26 @@ int main(){
                     //Sends to Stop state and deletes all
                     stateMachine = Stop;
                     elevio_stopLamp(1);
-                    delete_all_orders();
-
-                    break;
                 }
+                else {
 
-                elevator->currentTarget = next_stop(elevator);
-
-                // order at floor
-                if (elevator->currentTarget != -1 && elevator->floor == elevator->currentTarget) {
-                    countDown = clock();
-
-
-                    // Turns on lights
-                    elevio_doorOpenLamp(1);
-                    stateMachine = OpenDoor;
-                }
-
-                
-                if(elevator->currentTarget != -1) {
-                    stateMachine = Moving;
+                    elevator->currentTarget = next_stop(elevator);
                     elevator_movement(elevator);
+
+                    // order at floor
+                    if (elevator->currentTarget != -1 && elevator->floor == elevator->currentTarget) {
+                        countDown = clock();
+
+
+                        // Turns on lights
+                        elevio_doorOpenLamp(1);
+                        stateMachine = OpenDoor;
+                    }
+
+                    
+                    if(elevator->currentTarget != -1) {
+                        stateMachine = Moving;
+                    }
                 }
 
                 break;
@@ -178,21 +169,16 @@ int main(){
                 elevator_movement(elevator);
 
                 if (elevio_stopButton()) {
-                    elevator->elevatorDirection = NONE;
-                    elevator->currentTarget = -1;
-                    elevator_movement(elevator);
                     stateMachine = Stop;
                     elevio_stopLamp(1);
-
-                    delete_all_orders();
-                    //elevator->currentTarget = -1;
-
                     break;
                 }
 
                 if (floor != -1) {
+                    printf("hi there!\n");
                     elevator->floor = floor;
-                    if (elevator->currentTarget == floor) {
+                    elevio_floorIndicator(elevator->floor);
+                    if (elevator->currentTarget == floor) {                        
                         countDown = clock();
                         stateMachine = OpenDoor;
                         elevator->currentTarget = -1;
@@ -215,7 +201,7 @@ int main(){
                     }
                     double tick = (double)(clock() - countDown) / CLOCKS_PER_SEC;
                     // Få dette til å stemme med 3 sekunder
-                    if (tick > 0.02) {
+                    if (tick > delayTime) {
                         elevio_doorOpenLamp(0);
                         stateMachine = AtFloor;
                         // remove target
@@ -228,8 +214,20 @@ int main(){
 
             case(Stop):
                 {
-                    // Finn en måte å holde døra åpen på
-                    if (!elevio_stopButton()) {
+                    delete_all_orders();
+                    clear_all_button_lights();
+                    elevator->currentTarget = next_stop(elevator);
+                    elevator_movement(elevator);
+
+                    elevio_doorOpenLamp(1);
+
+                    if(elevio_stopButton()) countDown = clock();
+                    double tick = (double)(clock() - countDown) / CLOCKS_PER_SEC;
+                    printf("tick: %f, delay time: %f\n", tick, delayTime);
+
+                    // Få dette til å stemme med 3 sekunder
+                    if (tick > delayTime) {
+                        //printf("here! -----------------------------------------\n");
                         stateMachine = AtFloor;
                         elevio_stopLamp(0);
                     }
@@ -237,7 +235,8 @@ int main(){
                 }
 
         }
-        // printf("Current state: %s , elevator direction: %d\n", to_state(stateMachine), elevator->elevatorDirection);
+        // print_orders();
+        printf("Current state: %s , elevator direction: %d\n", to_state(stateMachine), elevator->elevatorDirection);
         // printf("current floor: %d, target floor: %d\n", elevator->floor, elevator->currentTarget);
 
 

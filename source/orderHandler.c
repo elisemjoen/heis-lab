@@ -30,7 +30,6 @@ void print_orders() {
 
 //Makes order
 Order getOrder(int floor, int button) {
-    print_orders();
     enum direction orderDirection = NONE;
 
     Order newOrder = {button, orderDirection, floor};
@@ -65,11 +64,12 @@ int next_stop(Elevator* elevator) {
         }
         //Iterates through floors below current floor
         for(int h = elevator->floor - 1; h >= min_floor; h--){
-            if(elevator_down[h] == true || elevator_down[h] == true || elevator_inside[h] == true){
+            if(elevator_up[h] == true || elevator_down[h] == true || elevator_inside[h] == true){
                 return h;
             }
         }
     }
+
     if (elevator->elevatorDirection == UP){
         //Iterates through floors above current floor
         for(int i = elevator->floor + 1; i <= max_floor; i++){
@@ -78,6 +78,7 @@ int next_stop(Elevator* elevator) {
             }
         }
     }
+
     if(elevator->elevatorDirection == DOWN){
         //Iterates through floors below current floor
         for(int j = elevator->floor - 1; j >= min_floor; j--){
@@ -86,6 +87,28 @@ int next_stop(Elevator* elevator) {
             }
         }
     }
+
+    // Check oposites
+    if (elevator->elevatorDirection == UP){
+        //Iterates through floors above current floor
+        for(int i = elevator->floor + 1; i <= max_floor; i++){
+            if(elevator_down[i] == true){
+                return i;
+            }
+        }
+        
+    }
+
+    if(elevator->elevatorDirection == DOWN){
+        //Iterates through floors below current floor
+        for(int j = elevator->floor - 1; j >= min_floor; j--){
+            if(elevator_up[j] == true){
+                    return j;
+            }
+        }
+    }
+
+
     return -1;
 }
 
@@ -98,7 +121,7 @@ void elevatorfloor_tofalse(int floor) {
 
 //Deletes all orders. Used when stop button is pressed.
 void delete_all_orders(){
-    for(int i = 0; i < 3; i++){
+    for(int i = 0; i < 4; i++){
         elevator_inside[i] = false;
         elevator_up[i] = false;
         elevator_down[i] = false;
