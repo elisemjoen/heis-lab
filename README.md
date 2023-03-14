@@ -5,47 +5,47 @@ Styrer en heis.
 ## Målet for labben
 Målet med denne labben er å lage et program som gjør at vi kan styre en heis ved hjelp av en kontroller. Da trenger vi å gjøre slik at heisen tar i mot og behandler knappetrykkene både fra innsiden og ut siden av heisen, og gjør til at alle kommer dit de skal:)
 
-## FAT heis-spesifikasjoner:
+## FAT test:
 ### oppstart:
 - [x] O1
-- [ ] O2
-- [ ] O3?
+- [x] O2
+- [x] O3
 ### Håndtering av bestillinger:
-- [ ] H1
-- [ ] H2
-- [ ] H3
-- [ ] H4
+- [x] H1
+- [x] H2
+- [x] H3
+- [x] H4
 
 ### Bestillingslys- og etasjelys:
-- [ ] L1
-- [ ] L2
-- [ ] L3
-- [ ] L4
-- [ ] L5
-- [ ] L6
+- [x] L1
+- [x] L2
+- [x] L3
+- [x] L4
+- [x] L5
+- [x] L6
 
 ### Heis-dør:
-- [ ] D1 - Ikke tilpasset 3 sek
+- [x] D1
 - [x] D2
-- [ ] D3 Gjør nå
-- [x] D4 - Ikke tilpasset 3 sek
+- [x] D3 
+- [x] D4
 
 ### Sikkerhet:
 - [x] S1
 - [x] S2
-- [ ] S3 - Test på labb
+- [x] S3
 - [x] S4
-- [ ] S5
+- [x] S5
 - [ ] S6
-- [x] S7
+- [ ] S7
 
 ### Robusthet
 - [x] R1
-- [ ] R2
-- [ ] R3
+- [x] R2
+- [x] R3
 
 ### Tillegg
-- [ ] Y1
+- [x] Y1
 
 
 
